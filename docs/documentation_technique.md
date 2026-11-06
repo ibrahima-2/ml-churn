@@ -157,7 +157,7 @@ sinon généré. Il permet de corréler la requête avec ses logs.
 | `event_type` | Émis par | Champs principaux |
 |---|---|---|
 | `model_loaded` / `model_load_error` | démarrage | `model_name`, `model_version`, `model_path` |
-| `http_request` | middleware (toutes les routes sauf `/metrics`) | `request_id`, `client_ip`, `user_agent`, `method`, `path`, `status_code`, `duration_ms` |
+| `http_request` | middleware (toutes les routes sauf `/metrics`) ; niveau `INFO` (2xx/3xx), `WARNING` (4xx) ou `ERROR` (5xx) | `request_id`, `client_ip`, `user_agent`, `method`, `path`, `status_code`, `duration_ms` |
 | `prediction` | `/predict` | `model_version`, `prediction`, `probability`, `response_time_ms`, `features` |
 | `prediction_error` | `/predict` | `error`, `exception`, `features` |
 
@@ -179,7 +179,7 @@ Le pipeline Logstash (`docker/logstash/pipeline/logstash.conf`) :
 | Métrique | Type | Labels | Source |
 |---|---|---|---|
 | `http_requests_total` | counter | `handler`, `method`, `status` (2xx/4xx/5xx) | Instrumentator |
-| `http_request_duration_seconds` | histogram | `handler`, `method` | Instrumentator |
+| `http_request_duration_seconds` | histogram (buckets de 5 ms à 10 s) | `handler`, `method` | Instrumentator |
 | `churn_predictions_total` | counter | `prediction`, `model_version` | API |
 | `churn_prediction_errors_total` | counter | `model_version` | API |
 | `churn_prediction_probability` | histogram | `model_version` | API |
