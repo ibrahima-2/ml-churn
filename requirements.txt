@@ -1,0 +1,13 @@
+# Dépendances d'exécution de l'API (installées dans l'image Docker).
+# Versions figées : le modèle sérialisé (joblib) doit être rechargé
+# avec la MÊME version de scikit-learn que celle utilisée à l'entraînement.
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic==2.11.4
+scikit-learn==1.6.1
+pandas==2.2.3
+numpy==2.2.5
+scipy==1.15.2
+joblib==1.4.2
+prometheus-client==0.21.1
+prometheus-fastapi-instrumentator==7.1.0

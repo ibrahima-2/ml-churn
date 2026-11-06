@@ -1,0 +1,7 @@
+# Dépendances de développement : Data Science, tests unitaires/API, tests E2E.
+-r requirements.txt
+matplotlib==3.10.1
+seaborn==0.13.2
+pytest==8.3.5
+httpx==0.28.1
+selenium==4.31.0

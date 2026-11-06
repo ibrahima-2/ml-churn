@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+.pytest_cache/
+
+# Logs applicatifs
+logs/
+
+# Résultats JMeter (régénérables)
+tests/performance/results/
+
+# Rapports générés
+reports/junit.xml
+
+# Fichiers système / éditeurs
+.DS_Store
+.idea/
+.vscode/
