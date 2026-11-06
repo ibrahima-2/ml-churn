@@ -63,7 +63,7 @@ ml-churn-project/
 | Git | 2.x | `git --version` |
 | Docker + Compose v2 | 29.x / v5 | `docker --version` · `docker compose version` |
 | Mémoire Docker | **≥ 4 Go** pour la stack ELK | Docker Desktop → Settings → Resources |
-| JMeter (optionnel) | 5.6 | sinon le script utilise l'image Docker `justb4/jmeter` |
+| JMeter (optionnel) | 5.6 | sinon le script utilise l'image Docker `alpine/jmeter:5.6.3` |
 | Chrome (tests E2E) | récent | ou Selenium en conteneur (voir §5.3) |
 
 Sous Ubuntu, si Docker n'est pas installé :
@@ -156,8 +156,8 @@ renvoie une erreur `422`.
 ### 5.1 Tests unitaires et API
 
 ```bash
-pytest                       # 20 tests ; les 3 tests Selenium sont ignorés si l'API est arrêtée
-pytest -m "not e2e" -v       # sans les tests E2E
+pytest -m "not e2e" -v       # 20 tests unitaires et API (aucun serveur nécessaire)
+pytest                       # + les 3 tests Selenium (ignorés si l'API est arrêtée)
 ```
 
 ### 5.2 Tests E2E Selenium (Chrome local)
@@ -169,6 +169,12 @@ pytest tests/test_selenium.py -v
 
 Scénario testé : ouverture de `/ui/` → saisie des données client → clic sur « Prédire » →
 appel à l'API → affichage du résultat → vérification. Le cas d'erreur de validation est aussi testé.
+
+> Si Chrome n'est pas installé, Selenium Manager tente de le télécharger automatiquement, ce qui
+> peut être très long sur une connexion lente. Dans ce cas, utiliser la variante en conteneur
+> ci-dessous, ou exclure ces tests avec `pytest -m "not e2e"`.
+
+![Interface web](docs/img/interface_web.png)
 
 ### 5.3 Tests E2E sans Chrome installé (Selenium en conteneur)
 
@@ -190,6 +196,17 @@ tests/performance/run_load_tests.sh            # 100, 500 puis 1000 utilisateurs
 
 Les rapports HTML sont générés dans `tests/performance/results/<N>_users/report/index.html`
 et le tableau de synthèse dans `tests/performance/results/summary.md`.
+
+Résultats mesurés (1 worker Uvicorn, Apple Silicon, stack complète démarrée) :
+
+| Utilisateurs | Moyenne | p95 | Débit | Erreurs |
+|---|---|---|---|---|
+| 100 | 6 ms | 11 ms | 101 req/s | 0 % |
+| 500 | 2,5 s | 3,5 s | 143 req/s | 0 % |
+| 1000 | 5,9 s | 7,1 s | 145 req/s | 0 % |
+
+Le service sature à environ 145 req/s par worker. L'analyse complète est dans
+[docs/rapport_industrialisation.md](docs/rapport_industrialisation.md).
 
 ---
 
@@ -259,6 +276,10 @@ Il affiche :
 
 Des règles d'alerte sont définies dans `monitoring/prometheus/alerts.yml` : API down,
 plus de 5 % d'erreurs 5xx, p95 au-dessus de 500 ms et dérive des prédictions.
+
+![Dashboard Grafana pendant les tests de charge](docs/img/grafana_dashboard.png)
+
+![Logs de prédiction dans Kibana](docs/img/kibana_discover.png)
 
 ---
 

@@ -96,6 +96,9 @@ services:
     container_name: ml-churn-kibana
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      TELEMETRY_OPTIN: "false"
+      TELEMETRY_ALLOWCHANGINGOPTINSTATUS: "false"
+      XPACK_SECURITY_SHOWINSECURECLUSTERWARNING: "false"
     ports:
       - "5601:5601"
     depends_on:

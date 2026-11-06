@@ -4,6 +4,7 @@ Lancement (depuis la racine du projet) :
     uvicorn api.main:app --reload
 """
 import json
+import logging
 import os
 import time
 import uuid
@@ -14,7 +15,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import Counter, Gauge, Histogram
-from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 from pydantic import BaseModel, ConfigDict, Field
 
 from api.logging_config import setup_logging
@@ -71,6 +72,7 @@ PREDICTION_LATENCY = Histogram(
     "churn_prediction_duration_seconds", "Durée d'inférence du modèle",
     ["model_version"], buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
 )
+PREDICTION_ERRORS.labels(MODEL_VERSION)  # série créée à 0 : visible dans Grafana avant la 1re erreur
 MODEL_INFO = Gauge("churn_model_info", "Modèle actuellement servi", ["model_name", "model_version"])
 MODEL_INFO.labels(MODEL_NAME, MODEL_VERSION).set(1 if model is not None else 0)
 
@@ -137,7 +139,10 @@ async def access_log(request: Request, call_next):
     duration_ms = round((time.perf_counter() - start) * 1000, 2)
     response.headers["X-Request-ID"] = request_id
     if request.url.path != "/metrics":
-        logger.info("HTTP request", extra={
+        # 5xx -> ERROR, 4xx -> WARNING : filtrables directement dans Kibana (level)
+        status = response.status_code
+        level = logging.ERROR if status >= 500 else logging.WARNING if status >= 400 else logging.INFO
+        logger.log(level, "HTTP request", extra={
             "event_type": "http_request",
             "request_id": request_id,
             "client_ip": client_ip(request),
@@ -237,5 +242,13 @@ def predict(data: ClientData, request: Request):
 if FRONTEND_DIR.is_dir():
     app.mount("/ui", StaticFiles(directory=FRONTEND_DIR, html=True), name="ui")
 
-# Expose /metrics (requêtes, latences, codes HTTP) pour Prometheus
-Instrumentator(excluded_handlers=["/metrics"]).instrument(app).expose(app, include_in_schema=False)
+# Expose /metrics (requêtes, latences, codes HTTP) pour Prometheus.
+# Correction : les buckets par défaut (0.1 / 0.5 / 1 s) sont trop grossiers pour
+# calculer des percentiles fiables sur une API qui répond en quelques ms.
+LATENCY_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 1, 2.5, 5, 10)
+(
+    Instrumentator(excluded_handlers=["/metrics"])
+    .add(metrics.default(latency_lowr_buckets=LATENCY_BUCKETS))
+    .instrument(app)
+    .expose(app, include_in_schema=False)
+)
