@@ -7,7 +7,7 @@
 #   tests/performance/run_load_tests.sh 100 200         # paliers personnalisés
 #   LOOPS=5 RAMPUP=20 tests/performance/run_load_tests.sh
 #
-# Si `jmeter` n'est pas installé, l'image Docker justb4/jmeter est utilisée
+# Si `jmeter` n'est pas installé, l'image Docker alpine/jmeter (multi-arch) est utilisée
 # sur le réseau du docker-compose (cible : api:8000).
 set -euo pipefail
 
@@ -19,7 +19,8 @@ USERS=("${@:-100 500 1000}")
 read -r -a USERS <<< "${USERS[*]}"
 LOOPS="${LOOPS:-10}"
 RAMPUP="${RAMPUP:-10}"
-JMETER_IMAGE="${JMETER_IMAGE:-justb4/jmeter:5.5}"
+JMETER_IMAGE="${JMETER_IMAGE:-alpine/jmeter:5.6.3}"
+JMETER_HEAP="${JMETER_HEAP:--Xms1g -Xmx1g -XX:MaxMetaspaceSize=256m}"
 COMPOSE_NETWORK="${COMPOSE_NETWORK:-ml-churn_default}"
 
 cd "$ROOT_DIR"
@@ -34,7 +35,9 @@ run_jmeter() {
       -Jthreads="$users" -Jrampup="$RAMPUP" -Jloops="$LOOPS" \
       -l "$out/results.jtl" -j "$out/jmeter.log" -e -o "$out/report"
   else
-    docker run --rm --network "$COMPOSE_NETWORK" \
+    # Image native (arm64/amd64) et heap bornée : une image amd64 émulée sur
+    # Apple Silicon dépasse 5 Go de RAM à 1000 threads et se fait tuer (OOM, 137).
+    docker run --rm --network "$COMPOSE_NETWORK" -e HEAP="$JMETER_HEAP" --entrypoint jmeter \
       -v "$ROOT_DIR:/work" -w /work "$JMETER_IMAGE" \
       -n -t "$PLAN" \
       -Jhost="${HOST:-api}" -Jport="${PORT:-8000}" \

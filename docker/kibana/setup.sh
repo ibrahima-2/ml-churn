@@ -24,4 +24,4 @@ curl -fsS -X POST "${KIBANA_URL}/api/data_views/default" \
   -H "Content-Type: application/json" \
   -d '{"data_view_id": "ml-churn-logs", "force": true}' > /dev/null
 
-echo "Data view créée : ouvrir ${KIBANA_URL%:*}:5601/app/discover"
+echo "Data view créée : ouvrir http://localhost:5601/app/discover depuis la machine hôte"
