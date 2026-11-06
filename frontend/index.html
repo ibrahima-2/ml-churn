@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prédiction du churn</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <header>
+      <h1>Prédiction du churn client</h1>
+      <p class="subtitle">Opérateur télécom · <span id="model-info">modèle…</span></p>
+    </header>
+
+    <form id="predict-form" novalidate>
+      <div class="grid">
+        <label>Âge
+          <input id="age" name="age" type="number" min="18" max="100" value="35" required>
+        </label>
+        <label>Ancienneté (mois)
+          <input id="anciennete" name="anciennete" type="number" min="0" max="600" value="5" required>
+        </label>
+        <label>Revenu (FCFA)
+          <input id="revenu" name="revenu" type="number" min="0" step="1000" value="450000" required>
+        </label>
+        <label>Montant mensuel (FCFA)
+          <input id="montant_mensuel" name="montant_mensuel" type="number" min="0" step="500" value="25000" required>
+        </label>
+        <label>Nombre de réclamations
+          <input id="nb_reclamations" name="nb_reclamations" type="number" min="0" max="100" value="2" required>
+        </label>
+        <label>Retards de paiement
+          <input id="retards_paiement" name="retards_paiement" type="number" min="0" max="100" value="2" required>
+        </label>
+      </div>
+      <button id="predict-btn" type="submit">Prédire</button>
+    </form>
+
+    <section id="result" class="result hidden" aria-live="polite">
+      <div id="result-label" class="label"></div>
+      <div class="meter"><div id="result-bar"></div></div>
+      <div id="result-details" class="details"></div>
+    </section>
+
+    <p id="error" class="error hidden" role="alert"></p>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
