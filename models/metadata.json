@@ -1,0 +1,28 @@
+{
+  "model_name": "Random Forest",
+  "model_key": "random_forest",
+  "version": "1.0.0",
+  "trained_at": "2026-11-06T22:34:51+00:00",
+  "features": [
+    "age",
+    "anciennete",
+    "revenu",
+    "nb_reclamations",
+    "montant_mensuel",
+    "retards_paiement"
+  ],
+  "target": "churn",
+  "threshold": 0.5,
+  "metrics": {
+    "accuracy": 0.6,
+    "precision": 0.5435,
+    "recall": 0.436,
+    "f1": 0.4839,
+    "roc_auc": 0.6246
+  },
+  "train_size": 1600,
+  "test_size": 400,
+  "data_file": "data/raw/churn.csv",
+  "data_sha256": "a703abb4df692a74cccc257130bebfabae069074c5d998f11e3dabe3c06cde1b",
+  "sklearn_version": "1.6.1"
+}

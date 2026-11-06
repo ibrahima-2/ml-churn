@@ -1,0 +1,19 @@
+# Correction : sans ce fichier, `COPY . .` embarquait .venv/, .git/, les logs...
+.venv/
+.git/
+.github/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.env
+logs/
+data/
+notebooks/
+reports/
+docs/
+tests/
+monitoring/
+docker/
+*.md
+docker-compose*.yml

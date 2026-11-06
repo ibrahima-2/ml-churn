@@ -1,0 +1,46 @@
+groups:
+  - name: ml-churn-api
+    rules:
+      - alert: ApiDown
+        expr: up{job="ml-churn-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "L'API ML Churn ne répond plus"
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job="ml-churn-api",status="5xx"}[5m]))
+            / sum(rate(http_requests_total{job="ml-churn-api"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Plus de 5 % d'erreurs 5xx sur l'API"
+
+      - alert: HighPredictLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_request_duration_seconds_bucket{job="ml-churn-api",handler="/predict"}[5m]))
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 de /predict supérieur à 500 ms"
+
+      # Indicateur simple de dérive : la proportion de CHURN prédite s'éloigne
+      # du taux observé à l'entraînement (~43 %).
+      - alert: PredictionDrift
+        expr: |
+          sum(rate(churn_predictions_total{prediction="CHURN"}[1h]))
+            / sum(rate(churn_predictions_total[1h])) > 0.7
+          or
+          sum(rate(churn_predictions_total{prediction="CHURN"}[1h]))
+            / sum(rate(churn_predictions_total[1h])) < 0.15
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "La part de prédictions CHURN dérive (possible data drift)"

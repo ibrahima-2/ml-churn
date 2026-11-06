@@ -1,0 +1,3 @@
+http.host: "0.0.0.0"
+# Pas de monitoring X-Pack (sécurité désactivée sur Elasticsearch pour le TP)
+xpack.monitoring.enabled: false
