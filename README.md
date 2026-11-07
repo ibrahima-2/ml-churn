@@ -1,9 +1,9 @@
-# ML Churn Project — Industrialisation d'un modèle de prédiction du churn
+# ML Churn Project : industrialisation d'un modèle de prédiction du churn
 
 [![CI ML Churn](https://github.com/ibrahima-2/ml-churn/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrahima-2/ml-churn/actions/workflows/ci.yml)
 
-Ce projet prédit le **churn** (résiliation) des clients d'un opérateur télécom. Il transforme
-un modèle de Machine Learning en application **déployable, testable, monitorée et maintenable**.
+Ce projet prédit le churn (résiliation) des clients d'un opérateur télécom. Il transforme
+un modèle de Machine Learning en application déployable, testable, monitorée et maintenable.
 
 ```
 Data (CSV) → Entraînement (scikit-learn) → model.pkl → API FastAPI → Docker
@@ -91,7 +91,7 @@ pip install -r requirements-dev.txt
 
 > **Pourquoi deux fichiers ?** `requirements.txt` contient uniquement ce dont l'API a besoin
 > (image Docker plus légère). `requirements-dev.txt` ajoute les outils de Data Science et de test.
-> Les versions sont figées : un `model.pkl` doit être rechargé avec **la même version de scikit-learn**.
+> Les versions sont figées : un `model.pkl` doit être rechargé avec la même version de scikit-learn.
 
 ---
 
@@ -238,7 +238,7 @@ API seule (version initiale du sujet) : `docker compose up -d --build api`.
 
 ### Logs → ELK
 
-L'API écrit **une ligne JSON par événement** dans `/app/logs/api.log`. Ce fichier est dans un
+L'API écrit une ligne JSON par événement dans `/app/logs/api.log`. Ce fichier est dans un
 volume partagé avec Logstash, qui l'envoie dans l'index Elasticsearch `ml-churn-logs-YYYY.MM.dd`.
 La data view Kibana `ml-churn-logs-*` est créée automatiquement.
 
@@ -265,7 +265,7 @@ event_type : "http_request" and duration_ms > 100
 
 ### Métriques → Prometheus → Grafana
 
-Le dashboard **ML Churn API** est provisionné automatiquement (Grafana → Dashboards → ML Churn).
+Le dashboard ML Churn API est provisionné automatiquement (Grafana → Dashboards → ML Churn).
 Il affiche :
 
 - l'état de l'API ;
@@ -292,9 +292,9 @@ Branches : `main` (production) ← `develop` (intégration) ← `feature/*` (dé
 Le pipeline [.github/workflows/ci.yml](.github/workflows/ci.yml) se lance à chaque push ou pull
 request sur `main` et `develop` :
 
-1. **test** : installation, génération des données, entraînement, `pytest` (rapport JUnit et modèle archivés) ;
-2. **docker** : build de l'image et smoke test du conteneur (`/health` et `/predict`) ;
-3. **e2e** : démarrage de l'API avec `docker compose`, puis tests Selenium dans Chrome headless.
+1. test : installation, génération des données, entraînement, `pytest` (rapport JUnit et modèle archivés) ;
+2. docker : build de l'image et smoke test du conteneur (`/health` et `/predict`) ;
+3. e2e : démarrage de l'API avec `docker compose`, puis tests Selenium dans Chrome headless.
 
 ---
 
@@ -311,7 +311,7 @@ curl http://SERVER_IP:8000/health
 ```
 
 Penser à ouvrir les ports 8000, 3000 et 5601 dans le pare-feu et le groupe de sécurité de la VM.
-**Ne pas exposer 9200 (Elasticsearch) sur Internet.** Changer le mot de passe Grafana avec la
+Ne pas exposer 9200 (Elasticsearch) sur Internet. Changer le mot de passe Grafana avec la
 variable `GRAFANA_ADMIN_PASSWORD`.
 
 ---
