@@ -78,8 +78,8 @@ docker run hello-world
 ### 2.2 Environnement Python
 
 ```bash
-git clone https://github.com/<USERNAME>/ml-churn-project.git
-cd ml-churn-project
+git clone https://github.com/ibrahima-2/ml-churn.git
+cd ml-churn
 
 python3 -m venv .venv
 source .venv/bin/activate          # Windows : .venv\Scripts\activate
@@ -300,8 +300,8 @@ request sur `main` et `develop` :
 
 ```bash
 sudo apt update && sudo apt install git docker.io docker-compose-v2 -y
-git clone https://github.com/<USERNAME>/ml-churn-project.git
-cd ml-churn-project
+git clone https://github.com/ibrahima-2/ml-churn.git
+cd ml-churn
 docker compose build
 docker compose up -d
 docker compose ps
