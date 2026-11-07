@@ -243,7 +243,8 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "decimals": 0
         },
         "overrides": []
       },
