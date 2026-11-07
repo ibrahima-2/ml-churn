@@ -90,10 +90,17 @@ protocoles.
 - **Endurance** (*soak*) : charge normale pendant une longue durée (plusieurs heures). Détecte
   les fuites mémoire, la saturation des disques ou des logs et la dégradation progressive.
 
+Dans ce projet, le palier de 100 utilisateurs est un test de charge, et ceux de 500 et 1 000
+utilisateurs sont des tests de stress : le service sature à ≈ 145 req/s, sans aucune erreur.
+Aucun test d'endurance n'a été réalisé.
+
 **14. Que signifie le 95e percentile du temps de réponse ?**
 95 % des requêtes ont répondu en un temps inférieur ou égal à cette valeur. Les 5 % restantes
 sont plus lentes. C'est plus représentatif de l'expérience réelle que la moyenne, qui masque les
 requêtes lentes. Les SLA s'expriment souvent ainsi, par exemple « p95 < 300 ms ».
+
+Mesures du projet : p95 = 11 ms à 100 utilisateurs (sous la capacité), puis 3,5 s à 500 et
+7,1 s à 1 000 utilisateurs (les requêtes font la queue).
 
 ## DevOps
 
@@ -117,6 +124,9 @@ l'orchestration (Compose, Kubernetes).
 Chaque modification est automatiquement testée et construite (CI), puis livrable ou déployée
 (CD). Les régressions sont détectées immédiatement, les livraisons sont fréquentes et fiables et
 il n'y a plus d'erreur de manipulation manuelle.
+
+Ici, GitHub Actions enchaîne trois jobs (test → docker → e2e) à chaque push sur `main` ou
+`develop`. Le pipeline a réussi dès le premier push, en 2 min 12 s.
 
 ## Observabilité
 
@@ -162,7 +172,7 @@ l'interface de supervision de l'équipe d'exploitation.
 **24. Comment versionner le modèle ?**
 - Version SemVer dans `metadata.json` (avec la date, les métriques, l'empreinte des données et
   la version de scikit-learn).
-- Commit Git du code, des données et du modèle, avec un tag `model-v1.0.0`.
+- Commit Git du code, des données et du modèle, avec un tag de version (ici `v1.0.0`).
 - Tag de l'image Docker correspondante.
 - Pour aller plus loin : un registre de modèles (MLflow) et DVC pour les données volumineuses.
 
