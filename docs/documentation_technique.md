@@ -1,4 +1,4 @@
-# Documentation technique — ML Churn API
+# Documentation technique : ML Churn API
 
 ## 1. Vue d'ensemble
 
@@ -37,9 +37,9 @@ si un client d'un opérateur télécom va résilier son abonnement.
 | `prometheus` | prom/prometheus:v2.53.3 | 9090 | Collecte et stockage des métriques, règles d'alerte |
 | `grafana` | grafana/grafana:11.3.0 | 3000 | Dashboards (provisionnés) |
 | `elasticsearch` | elasticsearch:8.15.3 | 9200 | Indexation des logs |
-| `logstash` | logstash:8.15.3 | — | Lecture du fichier de logs → Elasticsearch |
+| `logstash` | logstash:8.15.3 | - | Lecture du fichier de logs → Elasticsearch |
 | `kibana` | kibana:8.15.3 | 5601 | Recherche et visualisation des logs |
-| `kibana-setup` | curlimages/curl | — | Création de la data view (one-shot) |
+| `kibana-setup` | curlimages/curl | - | Création de la data view (one-shot) |
 
 Volumes : `api-logs` (partagé entre l'API, en écriture, et Logstash, en lecture seule),
 `prometheus-data`, `grafana-data`, `es-data` et `logstash-data` (sincedb).
@@ -64,11 +64,11 @@ P(churn) = 1 / (1 + e^(−score))
 | `nb_reclamations` | int | Poisson(2) | + (faible) |
 | `montant_mensuel` | int (FCFA) | 5 000–75 000 | + (moyen) |
 | `retards_paiement` | int | Poisson(1) | + (faible) |
-| `churn` | 0/1 | — | cible (43 % de 1) |
+| `churn` | 0/1 | - | cible (43 % de 1) |
 
 ### 3.2 Entraînement (`src/train.py`)
 
-- Split train/test **80/20 stratifié** (`random_state=42`).
+- Split train/test 80/20 stratifié (`random_state=42`).
 - Trois modèles comparés : régression logistique (avec `StandardScaler` dans un `Pipeline`),
   arbre de décision (`max_depth=5`) et Random Forest (200 arbres).
 - Métriques : accuracy, precision, recall, F1 et ROC-AUC.
@@ -78,7 +78,7 @@ P(churn) = 1 / (1 + e^(−score))
     empreinte SHA-256 du dataset et version de scikit-learn ;
   - `models/metrics.json` : comparaison des trois modèles.
 
-`metadata.json` est la **source de vérité** pour l'API : ordre des colonnes, version et seuil.
+`metadata.json` est la source de vérité pour l'API : ordre des colonnes, version et seuil.
 
 ## 4. API
 
@@ -161,18 +161,18 @@ sinon généré. Il permet de corréler la requête avec ses logs.
 | `prediction` | `/predict` | `model_version`, `prediction`, `probability`, `response_time_ms`, `features` |
 | `prediction_error` | `/predict` | `error`, `exception`, `features` |
 
-Les **features** sont journalisées à chaque prédiction. Cela permet de détecter une dérive des
+Les features sont journalisées à chaque prédiction. Cela permet de détecter une dérive des
 données (*data drift*) et de constituer un jeu de réentraînement. En production avec de vraies
 données, il faudrait évaluer la conformité RGPD (pseudonymisation).
 
 Le pipeline Logstash (`docker/logstash/pipeline/logstash.conf`) :
 
-1. **input file** : lit `/logs/api.log`, codec `json`, et mémorise sa position dans le sincedb
+1. input file : lit `/logs/api.log`, codec `json`, et mémorise sa position dans le sincedb
    persistant ;
-2. **filter date** : `timestamp` devient `@timestamp`, c'est-à-dire l'heure de l'événement et non
+2. filter date : `timestamp` devient `@timestamp`, c'est-à-dire l'heure de l'événement et non
    l'heure de lecture ;
-3. **filter mutate** : typage numérique des durées, de la probabilité et du code HTTP ;
-4. **output elasticsearch** : un index par jour, `ml-churn-logs-YYYY.MM.dd`.
+3. filter mutate : typage numérique des durées, de la probabilité et du code HTTP ;
+4. output elasticsearch : un index par jour, `ml-churn-logs-YYYY.MM.dd`.
 
 ### 5.2 Métriques
 
@@ -200,11 +200,11 @@ Alertes (`monitoring/prometheus/alerts.yml`) : `ApiDown`, `HighErrorRate` (plus 
 
 ## 6. Image Docker
 
-- Base `python:3.11-slim`. Les dépendances sont installées **avant** la copie du code, pour
+- Base `python:3.11-slim`. Les dépendances sont installées avant la copie du code, pour
   profiter du cache de couches.
 - Seuls `api/`, `models/` et `frontend/` sont copiés (`.dockerignore`) : pas de `.venv`, de
   `.git`, de données ni de tests.
-- L'application tourne avec un utilisateur **non-root** (`appuser`, uid 10001).
+- L'application tourne avec un utilisateur non-root (`appuser`, uid 10001).
 - `HEALTHCHECK` sur `/health`, utilisé par `docker compose up --wait` et par la CI.
 - `--no-access-log` : l'accès est déjà journalisé, en JSON enrichi, par le middleware.
 

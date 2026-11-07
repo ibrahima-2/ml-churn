@@ -1,18 +1,18 @@
-# Questions de soutenance — éléments de réponse
+# Questions de soutenance : éléments de réponse
 
 ## Data Science
 
 **1. Pourquoi ce problème est-il pertinent ?**
 Acquérir un nouveau client coûte nettement plus cher que d'en conserver un. Le marché télécom
 est saturé et concurrentiel. Prédire le churn permet de cibler les clients à risque avec des
-actions de rétention (offre, appel du service client) **avant** leur départ, et de limiter la
+actions de rétention (offre, appel du service client) avant leur départ, et de limiter la
 perte de revenu récurrent.
 
 **2. Quelle est la variable cible ?**
 `churn` : 1 si le client résilie, 0 sinon. Elle représente 43 % de 1 dans le dataset.
 
 **3. Pourquoi s'agit-il d'une classification ?**
-La cible est **catégorielle et binaire** (part / reste), et non une valeur continue. On parle de
+La cible est catégorielle et binaire (part / reste), et non une valeur continue. On parle de
 classification supervisée, car les exemples d'entraînement sont étiquetés. Le modèle fournit
 aussi une probabilité, utile pour prioriser les clients.
 
@@ -28,7 +28,7 @@ C'est la consigne du TP, et le modèle a de bonnes propriétés pour la producti
 - il ne nécessite pas de normalisation ;
 - il fournit des probabilités et l'importance des variables (explicabilité).
 
-Les résultats montrent toutefois que, **sur ces données**, la régression logistique a une
+Les résultats montrent toutefois que, sur ces données, la régression logistique a une
 meilleure ROC-AUC (0,636 contre 0,625). C'est logique, car les données sont générées par une
 fonction logistique. Le Random Forest non bridé sur-apprend un peu. `train.py --model` permet de
 changer de modèle sans toucher l'API.
@@ -49,9 +49,9 @@ déployer, le mettre à l'échelle, le monitorer et le versionner indépendammen
 - Facile à tester avec `TestClient`.
 
 **8. Quelle différence entre `/health` et `/predict` ?**
-`/health` est un endpoint **technique**, léger et sans paramètre. Il indique si le service est
+`/health` est un endpoint technique, léger et sans paramètre. Il indique si le service est
 opérationnel (ici, si le modèle est chargé) et sert au load balancer, à Docker (HEALTHCHECK) et
-au monitoring. `/predict` est l'endpoint **métier** : il reçoit les données d'un client, exécute
+au monitoring. `/predict` est l'endpoint métier : il reçoit les données d'un client, exécute
 le modèle et renvoie une prédiction.
 
 ## Tests
@@ -61,7 +61,7 @@ C'est le standard Python : syntaxe simple (`assert`), fixtures, marqueurs (`e2e`
 et rapports JUnit pour la CI. Il s'intègre avec le `TestClient` de FastAPI.
 
 **10. Pourquoi Selenium ?**
-Pour tester l'application **comme un utilisateur réel**, dans un vrai navigateur : affichage,
+Pour tester l'application comme un utilisateur réel, dans un vrai navigateur : affichage,
 saisie, clic, appel de l'API par le JavaScript, affichage du résultat. Il détecte les régressions
 que les tests d'API ne voient pas (front cassé, mauvais identifiant de champ, erreur JS…).
 
@@ -86,7 +86,7 @@ protocoles.
 - **Charge** : la charge attendue (par exemple 100 utilisateurs). Vérifie que les temps de
   réponse respectent le SLA en conditions normales.
 - **Stress** : on augmente au-delà de la capacité (500, puis 1000 utilisateurs) pour trouver le
-  **point de rupture** et observer comment le système se dégrade et récupère.
+  point de rupture et observer comment le système se dégrade et récupère.
 - **Endurance** (*soak*) : charge normale pendant une longue durée (plusieurs heures). Détecte
   les fuites mémoire, la saturation des disques ou des logs et la dégradation progressive.
 
@@ -116,7 +116,7 @@ qu'après les tests et la revue.
 
 **17. Pourquoi Docker ?**
 Docker empaquette l'application avec ses dépendances exactes (Python, scikit-learn 1.6.1…) dans
-une image identique en dev, en CI et en production : fini le « ça marche sur ma machine ». Il
+une image identique en dev, en CI et en production : le code se comporte partout de la même façon. Il
 apporte aussi l'isolation, un démarrage rapide, le versionnement des images et une base pour
 l'orchestration (Compose, Kubernetes).
 
@@ -131,11 +131,11 @@ Ici, GitHub Actions enchaîne trois jobs (test → docker → e2e) à chaque pus
 ## Observabilité
 
 **19. Quelle différence entre logs et métriques ?**
-Les **logs** sont des événements détaillés et horodatés (une prédiction, une erreur avec sa
+Les logs sont des événements détaillés et horodatés (une prédiction, une erreur avec sa
 stack trace). Ils répondent à « que s'est-il passé exactement pour cette requête ? ». Ils sont
-volumineux. Les **métriques** sont des valeurs numériques agrégées dans le temps (requêtes/s,
+volumineux. Les métriques sont des valeurs numériques agrégées dans le temps (requêtes/s,
 p95, taux d'erreur). Elles répondent à « comment se porte le système ? ». Elles sont légères et
-idéales pour les dashboards et les alertes.
+adaptées aux dashboards et aux alertes.
 
 **20. Pourquoi ELK ?**
 Centraliser les logs de tous les conteneurs et serveurs dans un même endroit :
@@ -178,16 +178,16 @@ l'interface de supervision de l'équipe d'exploitation.
 
 **25. Que faire si un nouveau modèle est moins performant ?**
 Ne pas le déployer. La CI doit comparer ses métriques à celles du modèle en production sur le
-même jeu de test et **bloquer** s'il régresse (un garde-fou existe déjà : ROC-AUC > 0,55). S'il
+même jeu de test et bloquer s'il régresse (un garde-fou existe déjà : ROC-AUC > 0,55). S'il
 est déjà déployé : rollback immédiat. Ensuite, analyser la cause (données, hyperparamètres) et
 valider avec un *shadow deployment* ou un A/B test avant toute promotion.
 
 **26. Comment détecter une dégradation du modèle ?**
-- Surveiller la **dérive des entrées** (tests statistiques KS ou PSI sur les features
+- Surveiller la dérive des entrées (tests statistiques KS ou PSI sur les features
   journalisées).
-- Surveiller la **dérive des sorties** (probabilité moyenne, part de CHURN : panneau Grafana et
+- Surveiller la dérive des sorties (probabilité moyenne, part de CHURN : panneau Grafana et
   alerte `PredictionDrift`).
-- Mesurer la **performance réelle** quand les étiquettes arrivent (precision et recall
+- Mesurer la performance réelle quand les étiquettes arrivent (precision et recall
   glissants).
 
 Si l'écart dépasse un seuil : alerte, puis réentraînement.
