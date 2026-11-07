@@ -1,5 +1,7 @@
 # ML Churn Project — Industrialisation d'un modèle de prédiction du churn
 
+[![CI ML Churn](https://github.com/ibrahima-2/ml-churn/actions/workflows/ci.yml/badge.svg)](https://github.com/ibrahima-2/ml-churn/actions/workflows/ci.yml)
+
 Ce projet prédit le **churn** (résiliation) des clients d'un opérateur télécom. Il transforme
 un modèle de Machine Learning en application **déployable, testable, monitorée et maintenable**.
 
