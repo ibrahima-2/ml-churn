@@ -10,7 +10,7 @@ APP_DIR="${APP_DIR:-/opt/ml-churn}"
 REF="${1:-main}"
 
 cd "$APP_DIR"
-git fetch --all --tags --prune
+git fetch --all --tags --prune --force   # --force : accepte un tag réécrit
 git checkout -q "$REF"
 if git show-ref --verify --quiet "refs/remotes/origin/$REF"; then
   git reset -q --hard "origin/$REF"
