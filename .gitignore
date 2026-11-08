@@ -21,3 +21,6 @@ reports/junit.xml
 
 # Fichiers de verrou Word / Office
 ~$*
+
+# Rapport Word : livré séparément, hors dépôt
+docs/Rapport_ML_Churn.docx

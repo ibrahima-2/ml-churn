@@ -338,15 +338,6 @@ d'authentification non plus : y accéder par un tunnel SSH plutôt que d'ouvrir 
 
 ---
 
-## Dépannage
-
-| Symptôme | Cause | Solution |
-|---|---|---|
-| Grafana n'affiche aucun dashboard | Le dossier `monitoring/` a été supprimé puis recréé (changement de branche, synchronisation iCloud…) : le conteneur reste attaché à l'ancien dossier | `docker compose up -d --force-recreate grafana prometheus logstash` |
-| Dashboard présent mais courbes plates | Pas de trafic récent sur la période affichée (15 min par défaut) | Faire quelques prédictions sur `/ui/` ou lancer `tests/performance/run_load_tests.sh 100` |
-| `pytest` bloque longtemps | Chrome absent : Selenium Manager tente de le télécharger | `pytest -m "not e2e"`, ou Selenium en conteneur (§5.3) |
-| Kibana « server is not ready yet » | Kibana démarre en environ 1 minute | Patienter, puis recharger la page |
-
 ## 10. Documentation
 
 - [docs/documentation_technique.md](docs/documentation_technique.md) : architecture, choix techniques, API, configuration
