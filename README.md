@@ -300,19 +300,41 @@ request sur `main` et `develop` :
 
 ## 9. Déploiement sur une VM Linux
 
+Le dossier [deploy/](deploy/) contient tout le nécessaire :
+
+| Fichier | Rôle |
+|---|---|
+| `deploy/cloud-init.yaml` | Configure une Ubuntu 24.04 neuve au premier démarrage : Docker, réglage mémoire d'Elasticsearch, clone du dépôt dans `/opt/ml-churn`, lancement de la stack |
+| `deploy/deploy.sh` | Met à jour une VM installée (`deploy.sh` = dernière version de `main`, `deploy.sh v1.0.0` = retour arrière), puis vérifie `/health` |
+| job `deploy` de la CI | Sur `main`, se connecte en SSH à la VM et lance `deploy.sh` (actif seulement si les secrets `VM_HOST`, `VM_USER` et `VM_SSH_KEY` existent) |
+
+### VM locale avec Multipass (macOS, Linux, Windows)
+
 ```bash
-sudo apt update && sudo apt install git docker.io docker-compose-v2 -y
-git clone https://github.com/ibrahima-2/ml-churn.git
-cd ml-churn
-docker compose build
-docker compose up -d
-docker compose ps
-curl http://SERVER_IP:8000/health
+brew install --cask multipass          # macOS
+multipass launch 24.04 --name ml-churn --cpus 2 --memory 6G --disk 25G \
+  --cloud-init deploy/cloud-init.yaml
+multipass list                         # IP de la VM
+curl http://<IP_VM>:8000/health
 ```
 
-Penser à ouvrir les ports 8000, 3000 et 5601 dans le pare-feu et le groupe de sécurité de la VM.
-Ne pas exposer 9200 (Elasticsearch) sur Internet. Changer le mot de passe Grafana avec la
-variable `GRAFANA_ADMIN_PASSWORD`.
+La première installation télécharge environ 3 Go d'images Docker dans la VM. Avec une connexion lente,
+on peut copier les images déjà présentes sur la machine hôte :
+`docker save … -o images.tar`, `scp images.tar ubuntu@<IP_VM>:/tmp/`, puis `docker load -i /tmp/images.tar` dans la VM.
+
+> **macOS 15 :** si `multipass exec` ou `ping <IP_VM>` répond « No route to host », autoriser le terminal
+> (et `multipassd`) dans Réglages Système → Confidentialité et sécurité → Réseau local, puis relancer
+> l'application.
+
+### VM cloud (Oracle Cloud, Azure, AWS…)
+
+Créer une Ubuntu 24.04 (≥ 2 vCPU, ≥ 6 Go de RAM) en collant `deploy/cloud-init.yaml` dans le champ
+« cloud-init / user data ». Ouvrir uniquement les ports 8000 (API) et 3000 (Grafana).
+
+Sécurité : Elasticsearch n'écoute que sur `127.0.0.1` (pas d'authentification dans ce TP). Kibana n'a pas
+d'authentification non plus : y accéder par un tunnel SSH plutôt que d'ouvrir le port 5601
+(`ssh -L 5601:localhost:5601 ubuntu@<IP_VM>`). Changer le mot de passe Grafana avec la variable
+`GRAFANA_ADMIN_PASSWORD`.
 
 ---
 
