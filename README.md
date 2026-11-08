@@ -207,8 +207,7 @@ Résultats mesurés (1 worker Uvicorn, Apple Silicon, stack complète démarrée
 | 500 | 2,5 s | 3,5 s | 143 req/s | 0 % |
 | 1000 | 5,9 s | 7,1 s | 145 req/s | 0 % |
 
-Le service sature à environ 145 req/s par worker. L'analyse complète est dans
-[docs/rapport_industrialisation.md](docs/rapport_industrialisation.md).
+Le service sature à environ 145 req/s par worker.
 
 ---
 
@@ -341,5 +340,4 @@ d'authentification non plus : y accéder par un tunnel SSH plutôt que d'ouvrir 
 ## 10. Documentation
 
 - [docs/documentation_technique.md](docs/documentation_technique.md) : architecture, choix techniques, API, configuration
-- [docs/rapport_industrialisation.md](docs/rapport_industrialisation.md) : démarche, résultats, tests de charge, corrections apportées au sujet
 - [docs/soutenance.md](docs/soutenance.md) : réponses aux 28 questions de soutenance
