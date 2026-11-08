@@ -118,3 +118,37 @@ jobs:
         run: |
           docker compose logs api
           docker compose down -v
+
+  # 4. Déploiement continu sur la VM (uniquement sur main, si les secrets sont configurés)
+  #    Secrets GitHub à créer : VM_HOST (IP publique), VM_USER (ex. ubuntu), VM_SSH_KEY (clé privée)
+  deploy:
+    needs: e2e
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      VM_HOST: ${{ secrets.VM_HOST }}
+      VM_USER: ${{ secrets.VM_USER }}
+    steps:
+      - name: Vérification des secrets
+        id: check
+        run: |
+          if [ -z "$VM_HOST" ]; then
+            echo "Aucune VM configurée (secret VM_HOST absent) : déploiement ignoré."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Déploiement par SSH
+        if: steps.check.outputs.enabled == 'true'
+        env:
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$VM_SSH_KEY" > ~/.ssh/id_vm && chmod 600 ~/.ssh/id_vm
+          ssh-keyscan -H "$VM_HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/id_vm "$VM_USER@$VM_HOST" "/opt/ml-churn/deploy/deploy.sh main"
+
+      - name: Vérification publique
+        if: steps.check.outputs.enabled == 'true'
+        run: curl -fs "http://$VM_HOST:8000/health"
