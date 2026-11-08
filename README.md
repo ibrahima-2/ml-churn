@@ -325,6 +325,22 @@ on peut copier les images déjà présentes sur la machine hôte :
 > (et `multipassd`) dans Réglages Système → Confidentialité et sécurité → Réseau local, puis relancer
 > l'application.
 
+### Captures du déploiement réalisé
+
+VM Ubuntu 24.04 créée avec Multipass (2 vCPU, 6 Go de RAM), adresse `192.168.252.3` :
+
+![Services démarrés dans la VM](docs/img/term_vm.png)
+
+Appel de `/predict` depuis le Swagger servi par la VM (la « Request URL » pointe vers la VM) :
+
+![Swagger servi par la VM](docs/img/swagger_vm.png)
+
+Interface web servie par la VM (`http://192.168.252.3:8000/ui/`) et dashboard Grafana de la VM :
+
+![Interface servie par la VM](docs/img/interface_vm.png)
+
+![Grafana servi par la VM](docs/img/grafana_vm.png)
+
 ### VM cloud (Oracle Cloud, Azure, AWS…)
 
 Créer une Ubuntu 24.04 (≥ 2 vCPU, ≥ 6 Go de RAM) en collant `deploy/cloud-init.yaml` dans le champ
