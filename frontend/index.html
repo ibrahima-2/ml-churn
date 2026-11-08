@@ -7,44 +7,120 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="card">
-    <header>
-      <h1>Prédiction du churn client</h1>
-      <p class="subtitle">Opérateur télécom · <span id="model-info">modèle…</span></p>
-    </header>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-name">Scoring churn</span>
+      <span class="brand-sub">Rétention clients</span>
+    </div>
+    <div class="status">
+      <span id="model-info">Modèle : chargement…</span>
+      <span id="api-status" class="api-status" data-state="unknown">API : vérification…</span>
+    </div>
+  </header>
 
-    <form id="predict-form" novalidate>
-      <div class="grid">
-        <label>Âge
-          <input id="age" name="age" type="number" min="18" max="100" value="35" required>
-        </label>
-        <label>Ancienneté (mois)
-          <input id="anciennete" name="anciennete" type="number" min="0" max="600" value="5" required>
-        </label>
-        <label>Revenu (FCFA)
-          <input id="revenu" name="revenu" type="number" min="0" step="1000" value="450000" required>
-        </label>
-        <label>Montant mensuel (FCFA)
-          <input id="montant_mensuel" name="montant_mensuel" type="number" min="0" step="500" value="25000" required>
-        </label>
-        <label>Nombre de réclamations
-          <input id="nb_reclamations" name="nb_reclamations" type="number" min="0" max="100" value="2" required>
-        </label>
-        <label>Retards de paiement
-          <input id="retards_paiement" name="retards_paiement" type="number" min="0" max="100" value="2" required>
-        </label>
+  <main class="layout">
+    <section class="panel form-panel" aria-labelledby="form-title">
+      <div class="panel-head">
+        <h1 id="form-title">Fiche client</h1>
+        <div class="presets" aria-label="Exemples">
+          <button type="button" class="link-btn" data-preset="recent">Exemple : client récent</button>
+          <button type="button" class="link-btn" data-preset="fidele">Exemple : client fidèle</button>
+        </div>
       </div>
-      <button id="predict-btn" type="submit">Prédire</button>
-    </form>
 
-    <section id="result" class="result hidden" aria-live="polite">
-      <div id="result-label" class="label"></div>
-      <div class="meter"><div id="result-bar"></div></div>
-      <div id="result-details" class="details"></div>
+      <form id="predict-form" novalidate>
+        <fieldset>
+          <legend>Profil</legend>
+          <div class="field">
+            <label for="age">Âge</label>
+            <div class="input-unit"><input id="age" name="age" type="number" inputmode="numeric" min="18" max="100" value="35" required><span>ans</span></div>
+            <p class="field-error" id="age-error"></p>
+          </div>
+          <div class="field">
+            <label for="revenu">Revenu mensuel</label>
+            <div class="input-unit"><input id="revenu" name="revenu" type="number" inputmode="numeric" min="0" step="1000" value="450000" required><span>FCFA</span></div>
+            <p class="field-error" id="revenu-error"></p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Contrat</legend>
+          <div class="field">
+            <label for="anciennete">Ancienneté</label>
+            <div class="input-unit"><input id="anciennete" name="anciennete" type="number" inputmode="numeric" min="0" max="600" value="5" required><span>mois</span></div>
+            <p class="field-error" id="anciennete-error"></p>
+          </div>
+          <div class="field">
+            <label for="montant_mensuel">Facture mensuelle</label>
+            <div class="input-unit"><input id="montant_mensuel" name="montant_mensuel" type="number" inputmode="numeric" min="0" step="500" value="25000" required><span>FCFA</span></div>
+            <p class="field-error" id="montant_mensuel-error"></p>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Incidents</legend>
+          <div class="field">
+            <label for="nb_reclamations">Réclamations</label>
+            <div class="input-unit"><input id="nb_reclamations" name="nb_reclamations" type="number" inputmode="numeric" min="0" max="100" value="2" required><span>nb</span></div>
+            <p class="field-error" id="nb_reclamations-error"></p>
+          </div>
+          <div class="field">
+            <label for="retards_paiement">Retards de paiement</label>
+            <div class="input-unit"><input id="retards_paiement" name="retards_paiement" type="number" inputmode="numeric" min="0" max="100" value="2" required><span>nb</span></div>
+            <p class="field-error" id="retards_paiement-error"></p>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button id="predict-btn" type="submit">Prédire</button>
+          <button id="reset-btn" type="button" class="secondary">Vider</button>
+        </div>
+      </form>
     </section>
 
-    <p id="error" class="error hidden" role="alert"></p>
+    <section class="panel result-panel" aria-labelledby="result-title">
+      <h2 id="result-title">Résultat</h2>
+
+      <p id="empty-state" class="empty">Renseignez la fiche puis cliquez sur « Prédire ».</p>
+
+      <div id="result" class="result hidden" aria-live="polite">
+        <div class="score-line">
+          <span id="result-proba" class="proba">–</span>
+          <span id="result-label" class="label-code"></span>
+        </div>
+        <p id="result-verdict" class="verdict"></p>
+
+        <div class="scale" aria-hidden="true">
+          <div class="scale-track"><div id="result-bar" class="scale-fill"></div></div>
+          <div class="scale-threshold"><span>seuil 50 %</span></div>
+          <div class="scale-ticks"><span style="left:0%">0</span><span style="left:25%">25</span><span style="left:50%">50</span><span style="left:75%">75</span><span style="left:100%">100</span></div>
+        </div>
+
+        <p id="result-details" class="details"></p>
+        <p class="ref">Réf. requête : <code id="result-ref">–</code></p>
+      </div>
+
+      <p id="error" class="error hidden" role="alert"></p>
+
+      <div class="history">
+        <h3>Derniers calculs <span class="muted">(cette session)</span></h3>
+        <table id="history-table">
+          <thead>
+            <tr><th>Heure</th><th>Ancienneté</th><th>Facture</th><th>Incidents</th><th>Proba.</th></tr>
+          </thead>
+          <tbody id="history-body">
+            <tr class="history-empty"><td colspan="5">Aucun calcul pour l’instant.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
+
+  <footer class="foot">
+    Modèle entraîné sur des données synthétiques : la probabilité est indicative.
+    <a href="/docs">Documentation de l’API</a>
+  </footer>
+
   <script src="app.js"></script>
 </body>
 </html>
