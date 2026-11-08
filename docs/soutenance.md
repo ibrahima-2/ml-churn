@@ -3,10 +3,10 @@
 ## Data Science
 
 **1. Pourquoi ce problème est-il pertinent ?**
-Acquérir un nouveau client coûte nettement plus cher que d'en conserver un. Le marché télécom
-est saturé et concurrentiel. Prédire le churn permet de cibler les clients à risque avec des
-actions de rétention (offre, appel du service client) avant leur départ, et de limiter la
-perte de revenu récurrent.
+Chaque résiliation fait perdre à l'opérateur un abonnement mensuel. Si l'on sait quels clients
+risquent de partir, le service client peut les contacter avant (offre adaptée, réclamation en
+attente à régler) au lieu de constater le départ après coup. La probabilité renvoyée par le
+modèle sert à décider qui appeler en premier.
 
 **2. Quelle est la variable cible ?**
 `churn` : 1 si le client résilie, 0 sinon. Elle représente 43 % de 1 dans le dataset.
@@ -22,31 +22,27 @@ Avec `train_test_split`, 80 % pour l'entraînement (1600 lignes) et 20 % pour le
 churn (43 %) dans les deux jeux. Le jeu de test n'est utilisé que pour l'évaluation finale.
 
 **5. Pourquoi avoir choisi Random Forest ?**
-C'est la consigne du TP, et le modèle a de bonnes propriétés pour la production :
-- il capte les relations non linéaires et les interactions ;
-- il est robuste au bruit et aux valeurs aberrantes ;
-- il ne nécessite pas de normalisation ;
-- il fournit des probabilités et l'importance des variables (explicabilité).
+C'est la consigne du TP. Le Random Forest a aussi des qualités utiles ici : il capte les
+relations non linéaires, tolère le bruit, ne demande pas de mise à l'échelle des variables et
+fournit une probabilité ainsi que l'importance de chaque variable.
 
-Les résultats montrent toutefois que, sur ces données, la régression logistique a une
-meilleure ROC-AUC (0,636 contre 0,625). C'est logique, car les données sont générées par une
-fonction logistique. Le Random Forest non bridé sur-apprend un peu. `train.py --model` permet de
-changer de modèle sans toucher l'API.
+Sur ces données, il n'est pourtant pas le meilleur : la régression logistique obtient une ROC-AUC
+de 0,636 contre 0,625, ce qui est logique puisque le churn a été généré par une fonction
+logistique. Le Random Forest, sans limite de profondeur, sur-apprend un peu. L'option
+`train.py --model` permet de déployer un autre modèle sans modifier l'API.
 
 ## API
 
 **6. Pourquoi transformer le modèle en API ?**
-Pour découpler le modèle de ses consommateurs (site web, application mobile, CRM, batch). Toute
-application peut l'appeler en HTTP/JSON sans connaître Python ni scikit-learn. On peut alors le
-déployer, le mettre à l'échelle, le monitorer et le versionner indépendamment.
+Pour que n'importe quelle application (site web, CRM, traitement par lots) obtienne une
+prédiction par une simple requête HTTP, sans embarquer Python ni scikit-learn. Le modèle devient
+un service qu'on déploie, surveille et met à jour séparément des applications qui l'utilisent.
 
 **7. Pourquoi utiliser FastAPI ?**
-- Performant (ASGI, Starlette).
-- Validation automatique des entrées avec Pydantic (erreurs 422 explicites).
-- Documentation OpenAPI et Swagger générée automatiquement.
-- Typage Python natif.
-- Écosystème Python identique à celui du modèle.
-- Facile à tester avec `TestClient`.
+FastAPI valide les entrées à partir des types Pydantic : un âge négatif est rejeté avec une
+erreur 422 sans code supplémentaire. Il génère la documentation Swagger à partir du code, il est
+rapide et il reste en Python, le langage du modèle. Son `TestClient` permet aussi de tester l'API
+sans la lancer.
 
 **8. Quelle différence entre `/health` et `/predict` ?**
 `/health` est un endpoint technique, léger et sans paramètre. Il indique si le service est
@@ -57,8 +53,9 @@ le modèle et renvoie une prédiction.
 ## Tests
 
 **9. Pourquoi Pytest ?**
-C'est le standard Python : syntaxe simple (`assert`), fixtures, marqueurs (`e2e`), paramétrage
-et rapports JUnit pour la CI. Il s'intègre avec le `TestClient` de FastAPI.
+Pytest est l'outil de test le plus utilisé en Python. Les tests s'écrivent avec de simples
+`assert`, un marqueur permet d'écarter les tests E2E (`pytest -m "not e2e"`) et il produit des
+rapports JUnit que GitHub Actions archive.
 
 **10. Pourquoi Selenium ?**
 Pour tester l'application comme un utilisateur réel, dans un vrai navigateur : affichage,
@@ -77,10 +74,10 @@ que les tests d'API ne voient pas (front cassé, mauvais identifiant de champ, e
 ## Performance
 
 **12. Pourquoi JMeter ?**
-Outil open source de référence pour simuler de nombreux utilisateurs concurrents. Il dispose
-d'une interface graphique pour concevoir les tests et d'un mode CLI pour les automatiser. Il
-produit des rapports HTML (percentiles, débit, erreurs) et sait tester HTTP, JDBC et d'autres
-protocoles.
+JMeter simule des centaines d'utilisateurs simultanés et mesure les temps de réponse, le débit et
+les erreurs. Le plan de test se construit dans une interface graphique puis s'exécute en ligne de
+commande, ce qui permet de l'automatiser, et chaque exécution produit un rapport HTML avec les
+percentiles.
 
 **13. Quelle différence entre test de charge, de stress et d'endurance ?**
 - **Charge** : la charge attendue (par exemple 100 utilisateurs). Vérifie que les temps de
@@ -105,9 +102,9 @@ Mesures du projet : p95 = 11 ms à 100 utilisateurs (sous la capacité), puis 3,
 ## DevOps
 
 **15. Pourquoi Git ?**
-Historique complet et traçable des changements (qui, quoi, quand, pourquoi), retour à n'importe
-quelle version, travail collaboratif en parallèle, revue de code par pull request et
-déclenchement de la CI/CD.
+Git garde l'historique de chaque modification (auteur, date, message) et permet de revenir à
+n'importe quelle version. Il permet aussi de travailler à plusieurs en parallèle, et chaque push
+sur GitHub déclenche la CI.
 
 **16. Pourquoi utiliser des branches ?**
 Pour isoler le travail en cours sans casser la version stable. `main` correspond à la
@@ -115,15 +112,14 @@ production, `develop` à l'intégration et `feature/*` à une fonctionnalité. U
 qu'après les tests et la revue.
 
 **17. Pourquoi Docker ?**
-Docker empaquette l'application avec ses dépendances exactes (Python, scikit-learn 1.6.1…) dans
-une image identique en dev, en CI et en production : le code se comporte partout de la même façon. Il
-apporte aussi l'isolation, un démarrage rapide, le versionnement des images et une base pour
-l'orchestration (Compose, Kubernetes).
+Docker emballe l'application avec ses dépendances exactes (Python 3.11, scikit-learn 1.6.1…)
+dans une image. La même image tourne sur le poste, dans la CI et sur la VM, ce qui supprime les
+écarts d'environnement. Docker Compose lance ensuite les 7 services de la stack en une commande.
 
 **18. Pourquoi la CI/CD ?**
-Chaque modification est automatiquement testée et construite (CI), puis livrable ou déployée
-(CD). Les régressions sont détectées immédiatement, les livraisons sont fréquentes et fiables et
-il n'y a plus d'erreur de manipulation manuelle.
+La CI teste et construit automatiquement chaque modification ; la CD la déploie. Une erreur est
+repérée au moment du push plutôt qu'au moment de la livraison, et le déploiement ne dépend plus
+d'une suite de commandes tapées à la main.
 
 Ici, GitHub Actions enchaîne trois jobs (test → docker → e2e) à chaque push sur `main` ou
 `develop`. Le pipeline a réussi dès le premier push, en 2 min 12 s.
@@ -147,14 +143,15 @@ On peut retrouver une requête par son `request_id`, filtrer les erreurs ou anal
 prédictions par version de modèle.
 
 **21. Pourquoi Prometheus ?**
-Base de données de séries temporelles conçue pour le monitoring. Elle fonctionne en mode *pull*
-(elle interroge `/metrics`), dispose d'un langage de requête puissant (PromQL) et d'alertes
-intégrées. C'est le standard cloud-native, avec des bibliothèques clientes pour FastAPI.
+Prometheus stocke des séries temporelles : il interroge `/metrics` toutes les 5 secondes, garde
+l'historique et calcule débit, percentiles ou taux d'erreur avec le langage PromQL. Il évalue aussi
+les règles d'alerte. La bibliothèque `prometheus-fastapi-instrumentator` le relie à FastAPI en
+quelques lignes.
 
 **22. Pourquoi Grafana ?**
-Pour visualiser les métriques dans des dashboards temps réel et partageables, à partir de
-multiples sources (Prometheus, Elasticsearch…), avec des alertes et des annotations. C'est
-l'interface de supervision de l'équipe d'exploitation.
+Grafana affiche les métriques de Prometheus dans des tableaux de bord. Ici, le dashboard
+« ML Churn API » est créé automatiquement au démarrage et regroupe trafic, latence, erreurs et
+indicateurs du modèle sur une seule page.
 
 **23. Que surveilleriez-vous sur une API ML en production ?**
 - **Technique** : disponibilité, débit, latence (p50, p95, p99), taux d'erreurs 4xx/5xx,
