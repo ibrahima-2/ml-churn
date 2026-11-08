@@ -1,0 +1,30 @@
+#cloud-config
+# Installation automatique d'une VM Ubuntu 24.04 pour ML Churn.
+# Utilisable tel quel avec :
+#   - Multipass  : multipass launch 24.04 --name ml-churn --cpus 2 --memory 6G --disk 25G --cloud-init deploy/cloud-init.yaml
+#   - Oracle Cloud, Azure, AWS, GCP : champ « cloud-init » / « user data » à la création de la VM
+#
+# Au premier démarrage : Docker est installé, le dépôt est cloné dans /opt/ml-churn
+# et toute la stack est lancée. Suivi : sudo tail -f /var/log/cloud-init-output.log
+
+package_update: true
+packages:
+  - git
+  - curl
+  - docker.io
+  - docker-compose-v2
+
+write_files:
+  # Elasticsearch a besoin d'au moins 262144 zones mémoire mappées (Docker Desktop le fait seul)
+  - path: /etc/sysctl.d/99-elasticsearch.conf
+    content: |
+      vm.max_map_count=262144
+
+runcmd:
+  - sysctl --system
+  - systemctl enable --now docker
+  - usermod -aG docker ubuntu
+  - git clone https://github.com/ibrahima-2/ml-churn.git /opt/ml-churn
+  - chown -R ubuntu:ubuntu /opt/ml-churn
+  - cd /opt/ml-churn && docker compose up -d --build
+  - echo "ML Churn déployé : http://$(hostname -I | awk '{print $1}'):8000/ui/"
